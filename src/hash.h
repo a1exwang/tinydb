@@ -1,7 +1,12 @@
 #pragma once
 
 typedef struct __Hash Hash;
-typedef struct __HashKeyType HashKeyType;
+typedef struct __HashKeyType {
+  union {
+    unsigned int n;
+    void *p;
+  };
+} HashKeyType;
 
 typedef unsigned int (*HashFn)(HashKeyType);
 /**
@@ -21,11 +26,10 @@ int hashGet(Hash *pHash, HashKeyType key, void **value);
 int hashRemove(Hash *pHash, HashKeyType key, void **value);
 void hashFree(Hash *pHash);
 
+int hashSize(Hash *pHash);
+
 HashKeyType hashMakeKey(unsigned int n);
 
-typedef struct __HashKeyType {
-  union {
-    unsigned int n;
-    void *p;
-  };
-} HashKeyType;
+int hashIterFirst(Hash *pHash, HashKeyType *pKey, void **pValue);
+int hashIterNext(Hash *pHash, HashKeyType current, HashKeyType *pKey, void **pValue);
+void hashDebugPrintPage(Hash *pHash);

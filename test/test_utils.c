@@ -8,8 +8,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <signal.h>
+#include <execinfo.h>
+#include <stdarg.h>
+
+static int s_testCount = 0;
+
+static void testUtilsSignalHandler(int sig) {
+  void *array[10];
+  int size;
+
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
 
 void testUtilsInit(void) {
+  signal(SIGSEGV, testUtilsSignalHandler);
   srand((unsigned int)time(0));
 }
 
@@ -41,4 +60,26 @@ const char *testUtilsGetTempFilePath(void) {
 
 void testUtilsMemFree(const void *ptr) {
   free((void*)ptr);
+}
+
+void testUtilsAssertEqI(int a, int b) {
+  if (a != b) {
+    exit(1);
+  }
+  s_testCount++;
+}
+
+void testUtilsAssertEqIM(int a, int b, const char *msg, ...) {
+  if (a != b) {
+    va_list ap;
+    va_start(ap, msg);
+    vfprintf(stderr, msg, ap);
+    va_end(ap);
+    exit(1);
+  }
+  s_testCount++;
+}
+
+void testUtilsEnd() {
+  printf("Test finished, %d assertions. All clear!\n", s_testCount);
 }

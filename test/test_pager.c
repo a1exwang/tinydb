@@ -16,8 +16,9 @@ int main() {
   Pager *pager = pagerOpen(tmpFilePath, PAGER_OPEN_READ_WRITE);
   assert(pager != 0);
 
-  char *page0 = pagerGetPage(pager, 0);
-  char *page15 = pagerGetPage(pager, 15);
+  char *page0 = pagerGetPage(pager, 0);   // test releasePage
+  char *page10 = pagerGetPage(pager, 10); // test markDirty and directly close pager
+  char *page15 = pagerGetPage(pager, 15); // test clean page is never written back
 
   // check newly created pages are filled with zero
   for (int i = 0; i < PAGER_PAGE_SIZE; ++i) {
@@ -28,7 +29,10 @@ int main() {
   }
 
   page0[0] = 'A';
+  page10[0] = 'A';
   page15[0] = 'A';
+  status = pagerMarkDirty(pager, page10);
+  assert(status == TINYDB_STATUS_OK);
   status = pagerMarkDirty(pager, page15);
   assert(status == TINYDB_STATUS_OK);
 
@@ -46,6 +50,7 @@ int main() {
   ssize_t actuallyRead = read(fd, buffer, PAGER_PAGE_SIZE * 16);
   assert(actuallyRead == PAGER_PAGE_SIZE * 16);
   assert(buffer[0] == 0);
+  assert(buffer[PAGER_PAGE_SIZE * 10] == 'A');
   assert(buffer[PAGER_PAGE_SIZE * 15] == 'A');
 
   free(buffer);
@@ -54,6 +59,6 @@ int main() {
   remove(tmpFilePath);
   testUtilsMemFree(tmpFilePath);
 
-  printf("pager test done, no error.\n");
+  testUtilsEnd();
   return 0;
 }

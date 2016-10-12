@@ -11,16 +11,16 @@ typedef struct __Pager {
 
 /**
  * Flags for pagerOpen()
- *
  */
 typedef int PagerOpenFlag;
 #define PAGER_OPEN_READ_ONLY    1
 #define PAGER_OPEN_READ_WRITE   2
 
-Pager *pagerOpen(const char *filePath, PagerOpenFlag flag);
+Pager *pagerOpen(const char *filePath, PagerOpenFlag flags);
 
 void *pagerGetPage(Pager *pPager, unsigned int id);
 int pagerMarkDirty(Pager *pager, void *pBuf);
 int pagerReleasePage(Pager *pager, void *pBuf);
 
 void pagerClose(Pager *pPager);
+
